@@ -1,0 +1,53 @@
+cabal-version:   3.0
+name:            native-continuations
+version:         0.1.0.0
+synopsis:        native delimited continuations
+description:     See README.md for more information
+license:         BSD-3-Clause
+license-file:    LICENSE
+author:          Matej Nižník
+maintainer:      matten@tuta.io
+category:        Control
+build-type:      Simple
+extra-doc-files: CHANGELOG.md
+
+source-repository head
+  type:     git
+  location: https://git.sr.ht/~thematten/native-continuations
+
+common common
+  ghc-options:        -Wall
+                      -Wimplicit-prelude
+                      -Wmissing-exported-signatures
+                      -Wmissing-export-lists
+                      -Wmissing-home-modules
+                      -Widentities
+                      -Wredundant-constraints
+                      -Wpartial-fields
+                      -Wcpp-undef
+                      -Wmissing-deriving-strategies
+                      -Wunused-type-patterns
+                      -Wunticked-promoted-constructors
+  default-language:   GHC2021
+  default-extensions: BlockArguments
+                      DataKinds
+                      NoImplicitPrelude
+                      QualifiedDo
+                      TypeFamilies
+  build-depends:      base ^>=4.18.0.0
+
+library
+  import:           common
+  exposed-modules:  Control.Monad.Cont.Native
+  other-modules:    Control.Prim
+                    Control.Prim.Lifted
+                    Control.Prim.Unlifted
+  hs-source-dirs:   src
+
+test-suite test
+  import:           common
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Main.hs
+  build-depends:    base ^>=4.18.0.0,
+                    native-continuations
