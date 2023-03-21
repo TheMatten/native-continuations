@@ -1,8 +1,14 @@
 {-# language MagicHash, UnboxedTuples #-}
 
-module Control.Prim.Lifted (Prim#, (>>=), (>>), pure, unsafePerformPrim#) where
+module Control.Prim.Lifted
+  ( Prim#, (>>=), (>>), pure, unsafePerformPrim#
+  , Prim, unsafePerformPrim
+  ) where
 
-import Control.Prim (Prim#)
+import Prelude (($))
+import Prelude qualified as Prelude
+import Control.Monad.Primitive (PrimMonad (..), PrimBase (..))
+import Control.Prim (Prim#, unsafeCoercePrimState#)
 import GHC.Exts (TYPE, RealWorld, runRW#)
 
 ------------------------------------------------------------------------------------------
@@ -21,3 +27,36 @@ pure a = (# , a #)
 unsafePerformPrim# :: Prim# RealWorld a -> a
 unsafePerformPrim# pa = case runRW# pa of (# _, a #) -> a
 {-# inline unsafePerformPrim# #-}
+
+newtype Prim a = Prim (Prim# () a)
+
+primToPrim# :: Prim a -> Prim# () a
+primToPrim# (Prim pa) = pa
+{-# inline primToPrim# #-}
+
+unsafePerformPrim :: Prim a -> a
+unsafePerformPrim (Prim ma) = unsafePerformPrim# $ unsafeCoercePrimState# ma
+{-# inline unsafePerformPrim #-}
+
+instance Prelude.Functor Prim where
+  fmap f (Prim pa) = Prim $ pa >>= \a -> pure $ f a
+  {-# inline fmap #-}
+
+instance Prelude.Applicative Prim where
+  pure a = Prim $ pure a
+  {-# inline pure #-}
+  Prim pf <*> Prim pa = Prim $ pf >>= \f -> pa >>= \a -> pure $ f a
+  {-# inline (<*>) #-}
+
+instance Prelude.Monad Prim where
+  Prim pa >>= f = Prim $ pa >>= \a -> primToPrim# $ f a
+  {-# inline (>>=) #-}
+
+instance PrimMonad Prim where
+  type PrimState Prim = ()
+  primitive = Prim
+  {-# inline primitive #-}
+
+instance PrimBase Prim where
+  internal = primToPrim#
+  {-# inline internal #-}

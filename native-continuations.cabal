@@ -31,10 +31,11 @@ common common
   default-language:   GHC2021
   default-extensions: BlockArguments
                       DataKinds
+                      DerivingStrategies
                       NoImplicitPrelude
                       QualifiedDo
                       TypeFamilies
-  build-depends:      base ^>=4.18.0.0
+  build-depends:      base ^>=4.18.0
 
 library
   import:           common
@@ -43,11 +44,12 @@ library
                     Control.Prim.Lifted
                     Control.Prim.Unlifted
   hs-source-dirs:   src
+  build-depends:    primitive ^>=0.8.0,
+                    transformers ^>=0.6.1,
 
 test-suite test
   import:           common
   type:             exitcode-stdio-1.0
   hs-source-dirs:   test
   main-is:          Main.hs
-  build-depends:    base ^>=4.18.0.0,
-                    native-continuations
+  build-depends:    native-continuations
